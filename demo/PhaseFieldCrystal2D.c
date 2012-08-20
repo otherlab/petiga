@@ -32,9 +32,9 @@ PetscErrorCode Stats(IGAPoint p,const PetscScalar *U,PetscInt n,PetscScalar *S,v
   AppCtx *user = (AppCtx *)ctx;
  
   PetscScalar c,c1[2],c2[2][2];
-  IGAPointGetValue(p,U,&c); 
-  IGAPointGetGrad(p,U,&c1[0]);
-  IGAPointGetHess(p,U,&c2[0][0]);
+  IGAPointFormValue(p,U,&c); 
+  IGAPointFormGrad(p,U,&c1[0]);
+  IGAPointFormHess(p,U,&c2[0][0]);
 
   S[0] = FreeEnergy(c,c1[0],c1[1],c2[0][0],c2[1][1],user); // Free energy
   
@@ -75,13 +75,13 @@ PetscErrorCode Residual(IGAPoint p,PetscReal dt,
   IGAPointGetSizes(p,&nen,0,0);
 
   PetscScalar c_t,c;
-  IGAPointGetValue(p,V,&c_t);
-  IGAPointGetValue(p,U,&c);
+  IGAPointFormValue(p,V,&c_t);
+  IGAPointFormValue(p,U,&c);
 
   PetscScalar c1[2],c2[2][2],c3[2][2][2];
-  IGAPointGetGrad(p,U,&c1[0]);
-  IGAPointGetHess(p,U,&c2[0][0]);
-  IGAPointGet3rdMixedPartials(p,U,&c3[0][0][0]);
+  IGAPointFormGrad(p,U,&c1[0]);
+  IGAPointFormHess(p,U,&c2[0][0]);
+  IGAPointFormDer3(p,U,&c3[0][0][0]);
   PetscScalar c_x   = c1[0],       c_y   = c1[1];
   PetscScalar c_xx  = c2[0][0],    c_yy  = c2[1][1];
   PetscScalar c_xxx = c3[0][0][0], c_yyy = c3[1][1][1];
@@ -138,8 +138,8 @@ PetscErrorCode Tangent(IGAPoint p,PetscReal dt,
   IGAPointGetSizes(p,&nen,0,0);
 
   PetscScalar c_t,c;
-  IGAPointGetValue(p,V,&c_t);
-  IGAPointGetValue(p,U,&c);
+  IGAPointFormValue(p,V,&c_t);
+  IGAPointFormValue(p,U,&c);
 
   PetscScalar c1[2];
   IGAPointGetGrad(p,U,&c1[0]);
@@ -345,7 +345,7 @@ int main(int argc, char *argv[]) {
 	    "Problem requires minimum of p = 3 and C = 2");
   if (p <= C)         /* Check C < p */
     SETERRQ(PETSC_COMM_WORLD,PETSC_ERR_ARG_OUTOFRANGE,
-	    "Discretization inconsistent: polynomial order must be greater than degree of continuity");
+            "Discretization inconsistent: polynomial order must be greater than degree of continuity");
 
   IGA iga;
   ierr = IGACreate(PETSC_COMM_WORLD,&iga);CHKERRQ(ierr);

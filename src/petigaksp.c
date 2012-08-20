@@ -3,29 +3,19 @@
 extern PetscLogEvent IGA_FormSystem;
 
 #undef  __FUNCT__
-#define __FUNCT__ "IGAFormSystem"
+#define __FUNCT__ "IGAComputeSystem"
 /*@
    IGAFormSystem - Form the matrix and vector which represents the
-   discretized a(w,u)=L(w).
+   discretized a(w,u) = L(w).
    
-   Collective on Mat/Vec
+   Collective on IGA/Mat/Vec
 
    Input Parameters:
-+  iga - the IGA context
-.  System - the function which evaluates a(w,u) and L(w)
--  ctx - user-defined context for evaluation routine (may be PETSC_NULL)
+.  iga - the IGA context
 
    Output Parameters:
 +  matA - the matrix obtained from discretization of a(w,u)
 -  vecB - the vector obtained from discretization of L(w)
-
-   Details of System:
-$  PetscErrorCode System(IGAPoint p,PetscScalar *K,PetscScalar *F,void *ctx);
-
-+  p - point at which to evaluate a(w,u)=L(w)
-.  K - contribution to a(w,u)
-.  F - contribution to L(w)
--  ctx - [optional] user-defined context for evaluation routine
 
    Notes: 
    This routine is used to solve a steady, linear problem. It performs
@@ -36,7 +26,27 @@ $  PetscErrorCode System(IGAPoint p,PetscScalar *K,PetscScalar *F,void *ctx);
 
 .keywords: IGA, setup linear system, matrix assembly, vector assembly
 @*/
-PetscErrorCode IGAFormSystem(IGA iga,Mat matA,Vec vecB,IGAUserSystem System,void *ctx)
+PetscErrorCode IGAComputeSystem(IGA iga,Mat matA,Vec vecB)
+{
+  IGAUserSystem  System;
+  void           *SysCtx;
+  PetscErrorCode ierr;
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(iga,IGA_CLASSID,1);
+  PetscValidHeaderSpecific(matA,MAT_CLASSID,2);
+  PetscValidHeaderSpecific(vecB,VEC_CLASSID,3);
+  IGACheckSetUp(iga,1);
+  IGACheckUserOp(iga,1,System);
+  System = iga->userops->System;
+  SysCtx = iga->userops->SysCtx;
+  ierr = IGAFormSystem(iga,matA,vecB,System,SysCtx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef  __FUNCT__
+#define __FUNCT__ "IGAFormSystem"
+PetscErrorCode IGAFormSystem(IGA iga,Mat matA,Vec vecB,
+                             IGAUserSystem System,void *ctx)
 {
   IGAElement     element;
   IGAPoint       point;

@@ -73,7 +73,7 @@ PetscErrorCode SystemCollocation(IGAColPoint p,PetscScalar *K,PetscScalar *F,voi
 PetscErrorCode ErrorLaplace(IGAPoint p,const PetscScalar *U,PetscInt n,PetscScalar *S,void *ctx)
 {
   PetscScalar u;
-  IGAPointGetValue(p,U,&u);
+  IGAPointFormValue(p,U,&u);
   PetscReal e = PetscAbsScalar(u - 1.0);
   S[0] = e*e;
   return 0;
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
   ierr = IGASetUp(iga);CHKERRQ(ierr);
 
   // Set boundary conditions
-  
+
   if (iga->geometry) {
     for(i=0; i<dim; i++) {
       IGABoundary bnd;
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
       ierr = IGABoundarySetValue(bnd,0,1.0);CHKERRQ(ierr);
     }
   }
-    
+  
   // Assemble
 
   Mat A;
@@ -161,9 +161,13 @@ int main(int argc, char *argv[]) {
   ierr = IGACreateMat(iga,&A);CHKERRQ(ierr);
   ierr = IGACreateVec(iga,&x);CHKERRQ(ierr);
   ierr = IGACreateVec(iga,&b);CHKERRQ(ierr);
-  if ( iga->geometry && !Collocation){ ierr = IGAFormSystem(iga,A,b,SystemPoisson,PETSC_NULL);CHKERRQ(ierr); }
-  if (!iga->geometry && !Collocation){ ierr = IGAFormSystem(iga,A,b,SystemLaplace,PETSC_NULL);CHKERRQ(ierr); }
-  if (!iga->geometry &&  Collocation){ ierr = IGAColFormSystem(iga,A,b,SystemCollocation,PETSC_NULL);CHKERRQ(ierr); }
+  if (iga->geometry){
+    ierr = IGASetUserSystem(iga,SystemPoisson,PETSC_NULL);CHKERRQ(ierr);
+  }else{
+    ierr = IGASetUserSystem(iga,SystemLaplace,PETSC_NULL);CHKERRQ(ierr);
+  }
+  ierr = IGAComputeSystem(iga,A,b);CHKERRQ(ierr);
+  ierr = MatSetOption(A,MAT_SYMMETRIC,PETSC_TRUE);CHKERRQ(ierr);
 
   // Solve
 

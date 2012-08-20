@@ -1,5 +1,12 @@
 ! -*- f90 -*-
 
+#include "petscconf.h"
+#if defined(PETSC_USE_COMPLEX)
+#define scalar complex
+#else
+#define scalar real
+#endif
+
 subroutine IGA_GetPoint(nen,dim,N,C,X) &
   bind(C, name="IGA_GetPoint")
   use PetIGA
@@ -22,8 +29,8 @@ subroutine IGA_GetValue(nen,dof,N,U,V) &
   implicit none
   integer(kind=IGA_INT   ), intent(in),value :: nen,dof
   real   (kind=IGA_REAL  ), intent(in)       :: N(nen)
-  real   (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
-  real   (kind=IGA_SCALAR), intent(out)      :: V(dof)
+  scalar (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
+  scalar (kind=IGA_SCALAR), intent(out)      :: V(dof)
   integer(kind=IGA_INT   )  :: a, i
   ! V = matmul(N,transpose(U))
   V = 0
@@ -38,8 +45,8 @@ subroutine IGA_GetGrad(nen,dof,dim,N,U,V) &
   implicit none
   integer(kind=IGA_INT   ), intent(in),value :: nen,dof,dim
   real   (kind=IGA_REAL  ), intent(in)       :: N(dim,nen)
-  real   (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
-  real   (kind=IGA_SCALAR), intent(out)      :: V(dim,dof)
+  scalar (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
+  scalar (kind=IGA_SCALAR), intent(out)      :: V(dim,dof)
   integer(kind=IGA_INT   )  :: a, c
   ! V = matmul(N,transpose(U))
   V = 0
@@ -56,8 +63,8 @@ subroutine IGA_GetHess(nen,dof,dim,N,U,V) &
   implicit none
   integer(kind=IGA_INT   ), intent(in),value :: nen,dof,dim
   real   (kind=IGA_REAL  ), intent(in)       :: N(dim*dim,nen)
-  real   (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
-  real   (kind=IGA_SCALAR), intent(out)      :: V(dim*dim,dof)
+  scalar (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
+  scalar (kind=IGA_SCALAR), intent(out)      :: V(dim*dim,dof)
   integer(kind=IGA_INT   )  :: a, i
   ! V = matmul(N,transpose(U))
   V = 0
@@ -74,8 +81,8 @@ subroutine IGA_GetDel2(nen,dof,dim,N,U,V) &
   implicit none
   integer(kind=IGA_INT   ), intent(in),value :: nen,dof,dim
   real   (kind=IGA_REAL  ), intent(in)       :: N(dim,dim,nen)
-  real   (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
-  real   (kind=IGA_SCALAR), intent(out)      :: V(dof)
+  scalar (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
+  scalar (kind=IGA_SCALAR), intent(out)      :: V(dof)
   integer(kind=IGA_INT   )  :: a, c, i
   V = 0
   do a = 1, nen
@@ -87,14 +94,14 @@ subroutine IGA_GetDel2(nen,dof,dim,N,U,V) &
   end do
 end subroutine IGA_GetDel2
 
-subroutine IGA_Get3rdMixed(nen,dof,dim,N,U,V) &
-  bind(C, name="IGA_Get3rdMixed")
+subroutine IGA_GetDer3(nen,dof,dim,N,U,V) &
+     bind(C, name="IGA_GetDer3")
   use PetIGA
   implicit none
   integer(kind=IGA_INT   ), intent(in),value :: nen,dof,dim
   real   (kind=IGA_REAL  ), intent(in)       :: N(dim*dim*dim,nen)
-  real   (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
-  real   (kind=IGA_SCALAR), intent(out)      :: V(dim*dim*dim,dof)
+  scalar (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
+  scalar (kind=IGA_SCALAR), intent(out)      :: V(dim*dim*dim,dof)
   integer(kind=IGA_INT   )  :: a, i
   ! V = matmul(N,transpose(U))
   V = 0
@@ -103,7 +110,7 @@ subroutine IGA_Get3rdMixed(nen,dof,dim,N,U,V) &
         V(:,i) = V(:,i) + N(:,a) * U(i,a)
      end do
   end do
-end subroutine IGA_Get3rdMixed
+end subroutine IGA_GetDer3
 
 !subroutine IGA_GetDerivative(nen,dof,dim,der,N,U,V) &
 !  bind(C, name="IGA_GetDerivative")
@@ -112,8 +119,8 @@ end subroutine IGA_Get3rdMixed
 !  integer(kind=IGA_INT   ), intent(in),value :: nen,dof
 !  integer(kind=IGA_INT   ), intent(in),value :: dim,der
 !  real   (kind=IGA_REAL  ), intent(in)       :: N(dim**der,nen)
-!  real   (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
-!  real   (kind=IGA_SCALAR), intent(out)      :: V(dim**der,dof)
+!  scalar (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
+!  scalar (kind=IGA_SCALAR), intent(out)      :: V(dim**der,dof)
 !  integer(kind=IGA_INT   )  :: a, i
 !  ! V = matmul(N,transpose(U))
 !  V = 0
@@ -131,8 +138,8 @@ subroutine IGA_Interpolate(nen,dof,dim,der,N,U,V) &
   integer(kind=IGA_INT   ), intent(in),value :: nen,dof
   integer(kind=IGA_INT   ), intent(in),value :: dim,der
   real   (kind=IGA_REAL  ), intent(in)       :: N(dim**der,nen)
-  real   (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
-  real   (kind=IGA_SCALAR), intent(out)      :: V(dim**der,dof)
+  scalar (kind=IGA_SCALAR), intent(in)       :: U(dof,nen)
+  scalar (kind=IGA_SCALAR), intent(out)      :: V(dim**der,dof)
   integer(kind=IGA_INT   )  :: a, i
   ! V = matmul(N,transpose(U))
   V = 0

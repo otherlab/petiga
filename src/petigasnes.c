@@ -4,6 +4,25 @@ extern PetscLogEvent IGA_FormFunction;
 extern PetscLogEvent IGA_FormJacobian;
 
 #undef  __FUNCT__
+#define __FUNCT__ "IGAComputeFunction"
+PetscErrorCode IGAComputeFunction(IGA iga,Vec vecU,Vec vecF)
+{
+  IGAUserFunction   Function;
+  void              *FunCtx;
+  PetscErrorCode    ierr;
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(iga,IGA_CLASSID,1);
+  PetscValidHeaderSpecific(vecU,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(vecF,VEC_CLASSID,3);
+  IGACheckSetUp(iga,1);
+  IGACheckUserOp(iga,1,Function);
+  Function = iga->userops->Function;
+  FunCtx   = iga->userops->FunCtx;
+  ierr = IGAFormFunction(iga,vecU,vecF,Function,FunCtx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+
+#undef  __FUNCT__
 #define __FUNCT__ "IGAFormFunction"
 PetscErrorCode IGAFormFunction(IGA iga,Vec vecU,Vec vecF,
                                IGAUserFunction Function,void *ctx)
@@ -62,6 +81,24 @@ PetscErrorCode IGAFormFunction(IGA iga,Vec vecU,Vec vecF,
   PetscFunctionReturn(0);
 }
 
+#undef  __FUNCT__
+#define __FUNCT__ "IGAComputeJacobian"
+PetscErrorCode IGAComputeJacobian(IGA iga,Vec vecU,Mat matJ)
+{
+  IGAUserJacobian   Jacobian;
+  void              *JacCtx;
+  PetscErrorCode    ierr;
+  PetscFunctionBegin;
+  PetscValidHeaderSpecific(iga,IGA_CLASSID,1);
+  PetscValidHeaderSpecific(vecU,VEC_CLASSID,2);
+  PetscValidHeaderSpecific(matJ,MAT_CLASSID,3);
+  IGACheckSetUp(iga,1);
+  IGACheckUserOp(iga,1,Jacobian);
+  Jacobian = iga->userops->Jacobian;
+  JacCtx   = iga->userops->JacCtx;
+  ierr = IGAFormJacobian(iga,vecU,matJ,Jacobian,JacCtx);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
 
 #undef  __FUNCT__
 #define __FUNCT__ "IGAFormJacobian"
@@ -133,11 +170,7 @@ PetscErrorCode IGASNESFormFunction(SNES snes,Vec U,Vec F,void *ctx)
   PetscValidHeaderSpecific(U,VEC_CLASSID,2);
   PetscValidHeaderSpecific(F,VEC_CLASSID,3);
   PetscValidHeaderSpecific(iga,IGA_CLASSID,4);
-  if (!iga->userops->Function)
-    SETERRQ(((PetscObject)snes)->comm,PETSC_ERR_USER,"Must call IGASetUserFunction()");
-  ierr = IGAFormFunction(iga,U,F,
-                         iga->userops->Function,
-                         iga->userops->FunCtx);CHKERRQ(ierr);
+  ierr = IGAComputeFunction(iga,U,F);CHKERRQ(ierr);
   PetscFunctionReturn(0);
 }
 
@@ -156,11 +189,7 @@ PetscErrorCode IGASNESFormJacobian(SNES snes,Vec U,Mat *J, Mat *P,MatStructure *
   PetscValidHeaderSpecific(*P,MAT_CLASSID,4);
   PetscValidPointer(m,5);
   PetscValidHeaderSpecific(iga,IGA_CLASSID,6);
-  if (!iga->userops->Jacobian)
-    SETERRQ(((PetscObject)snes)->comm,PETSC_ERR_USER,"Must call IGASetUserJacobian()");
-  ierr = IGAFormJacobian(iga,U,*P,
-                         iga->userops->Jacobian,
-                         iga->userops->JacCtx);CHKERRQ(ierr);
+  ierr = IGAComputeJacobian(iga,U,*P);CHKERRQ(ierr);
   if (*J != * P) {
     ierr = MatAssemblyBegin(*J,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
     ierr = MatAssemblyEnd(*J,MAT_FINAL_ASSEMBLY);CHKERRQ(ierr);
