@@ -1,14 +1,16 @@
+.. _GALLERY:
+
 Gallery
--------
+=======
 
 Cahn-Hilliard
-^^^^^^^^^^^^^
+-------------
 
 .. image:: images/ch1.png
 .. image:: images/ch2.png
 
 Navier-Stokes-Korteweg
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 .. image:: images/nsk0000.png
 .. image:: images/nsk0316.png
