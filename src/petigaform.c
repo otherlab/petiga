@@ -394,7 +394,7 @@ PetscErrorCode IGASetBoundaryForm(IGA iga,PetscInt axis,PetscInt side,PetscBool 
 #undef  __FUNCT__
 #define __FUNCT__ "IGASetFormVector"
 /*@
-   IGASetFormSystem - Set the user callback to form the vector
+   IGASetFormVector - Set the user callback to form the vector
    which represents the discretized L(w).
 
    Logically collective on IGA
