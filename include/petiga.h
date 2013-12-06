@@ -668,6 +668,10 @@ PETSC_EXTERN PetscLogEvent IGA_FormIJacobian;
 PETSC_EXTERN PetscErrorCode IGAComputeScalar(IGA iga,Vec U,
                                              PetscInt n,PetscScalar S[],
                                              IGAFormScalar Scalar,void *ctx);
+PETSC_EXTERN PetscErrorCode IGAComputeScalarCustom(IGA iga,Vec U,
+                                                   PetscInt n,PetscScalar S[],
+                                                   IGAFormScalar Scalar,void *ctx,
+                                                   PetscBool fix);
 
 #define PCIGAEBE "igaebe"
 #define PCIGABBB "igabbb"

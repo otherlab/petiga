@@ -39,6 +39,19 @@ PetscErrorCode IGAComputeScalar(IGA iga,Vec vecU,
                                 PetscInt n,PetscScalar S[],
                                 IGAFormScalar Scalar,void *ctx)
 {
+  PetscErrorCode ierr;
+
+  PetscFunctionBegin;
+  ierr = IGAComputeScalarCustom(iga,vecU,n,S,Scalar,ctx,PETSC_FALSE);CHKERRQ(ierr);
+  PetscFunctionReturn(0);
+}
+#undef  __FUNCT__
+#define __FUNCT__ "IGAComputeScalarCustom"
+PetscErrorCode IGAComputeScalarCustom(IGA iga,Vec vecU,
+                                      PetscInt n,PetscScalar S[],
+                                      IGAFormScalar Scalar,void *ctx,
+                                      PetscBool fix)
+{
   MPI_Comm          comm;
   Vec               localU;
   const PetscScalar *arrayU;
@@ -65,6 +78,7 @@ PetscErrorCode IGAComputeScalar(IGA iga,Vec vecU,
   ierr = IGABeginElement(iga,&element);CHKERRQ(ierr);
   while (IGANextElement(iga,element)) {
     ierr = IGAElementGetValues(element,arrayU,&U);CHKERRQ(ierr);
+    if (fix) { ierr = IGAElementFixValues(element,U);CHKERRQ(ierr); }
     /* Quadrature loop */
     ierr = IGAElementBeginPoint(element,&point);CHKERRQ(ierr);
     while (IGAElementNextPoint(element,point)) {
